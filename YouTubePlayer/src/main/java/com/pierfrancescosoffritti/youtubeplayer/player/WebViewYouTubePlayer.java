@@ -1,21 +1,32 @@
 package com.pierfrancescosoffritti.youtubeplayer.player;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.net.http.SslError;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import com.pierfrancescosoffritti.youtubeplayer.R;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -165,8 +176,9 @@ class WebViewYouTubePlayer extends WebView implements YouTubePlayer {
         settings.setJavaScriptEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setMediaPlaybackRequiresUserGesture(false);
-
         this.addJavascriptInterface(new YouTubePlayerBridge(this), "YouTubePlayerBridge");
+//        this.loadDataWithBaseURL("", readYouTubePlayerHTMLFromFile(), "text/html", "utf-8", "");
+//        this.loadData(readYouTubePlayerHTMLFromFile(), "text/html; charset=utf-8", "UTF-8");
         this.loadDataWithBaseURL("https://www.youtube.com", readYouTubePlayerHTMLFromFile(), "text/html", "utf-8", null);
     }
 
@@ -196,6 +208,49 @@ class WebViewYouTubePlayer extends WebView implements YouTubePlayer {
         @Override
         public void onStateChange(@PlayerConstants.PlayerState.State int state) {
             this.currentState = state;
+        }
+    }
+
+    private class SSLTolerentWebViewClient extends WebViewClient {
+        public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            AlertDialog alertDialog = builder.create();
+            String message = "SSL Certificate error.";
+            switch (error.getPrimaryError()) {
+                case SslError.SSL_UNTRUSTED:
+                    message = "The certificate authority is not trusted.";
+                    break;
+                case SslError.SSL_EXPIRED:
+                    message = "The certificate has expired.";
+                    break;
+                case SslError.SSL_IDMISMATCH:
+                    message = "The certificate Hostname mismatch.";
+                    break;
+                case SslError.SSL_NOTYETVALID:
+                    message = "The certificate is not yet valid.";
+                    break;
+            }
+
+            message += " Do you want to continue anyway?";
+            alertDialog.setTitle("SSL Certificate Error");
+            alertDialog.setMessage(message);
+            alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // Ignore SSL certificate errors
+                    handler.proceed();
+                }
+            });
+
+            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    handler.cancel();
+                }
+            });
+            alertDialog.show();
         }
     }
 }

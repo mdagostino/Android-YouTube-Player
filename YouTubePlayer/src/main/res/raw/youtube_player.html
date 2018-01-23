@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
     <style type="text/css">
         html, body {
@@ -13,8 +12,8 @@
     </style>
 
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <script src="https://www.youtube.com/iframe_api"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <!--<script src="https://www.youtube.com/iframe_api"></script>-->
     </head>
 
     <body>
@@ -22,33 +21,37 @@
     </body>
 
     <script type="text/javascript">
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         
-        const UNSTARTED = "UNSTARTED";
-        const ENDED = "ENDED";
-        const PLAYING = "PLAYING";
-        const PAUSED = "PAUSED";
-        const BUFFERING = "BUFFERING";
-        const CUED = "CUED";
-        
+        var UNSTARTED = "UNSTARTED";
+        var ENDED = "ENDED";
+        var PLAYING = "PLAYING";
+        var PAUSED = "PAUSED";
+        var BUFFERING = "BUFFERING";
+        var CUED = "CUED";
+
         const YouTubePlayerBridge = window.YouTubePlayerBridge;
-    	let player;
+    	var player;
 
     	function onYouTubeIframeAPIReady() {
 
             YouTubePlayerBridge.sendYouTubeIframeAPIReady();
-            
+
     		player = new YT.Player('youTubePlayerDOM', {
-    			
+
                 height: '100%',
     			width: '100%',
-    			
+
                 events: {
-    				onReady: event => YouTubePlayerBridge.sendReady(),
-    				onStateChange: event => sendPlayerStateChange(event.data),
-    				onPlaybackQualityChange: event => YouTubePlayerBridge.sendPlaybackQualityChange(event.data),
-    				onPlaybackRateChange: event => YouTubePlayerBridge.sendPlaybackRateChange(event.data),
-    				onError: event => YouTubePlayerBridge.sendError(error.data),
-    				onApiChange: event => YouTubePlayerBridge.sendApiChange()
+    				onReady: function (event){YouTubePlayerBridge.sendReady()},
+    				onStateChange: function (event){sendPlayerStateChange(event.data)},
+    				onPlaybackQualityChange: function (event){YouTubePlayerBridge.sendPlaybackQualityChange(event.data)},
+    				onPlaybackRateChange: function (event){YouTubePlayerBridge.sendPlaybackRateChange(event.data)},
+    				onError: function (event){YouTubePlayerBridge.sendError(error.data)},
+    				onApiChange: function (event){YouTubePlayerBridge.sendApiChange()}
     			},
 
     			playerVars: {
@@ -57,17 +60,17 @@
     				controls: 0,
     				enablejsapi: 1,
     				fs: 0,
-    				origin: 'https://www.youtube.com',
+    				origin: 'http://www.tictapps.com',
     				rel: 0,
     				showinfo: 0,
     				iv_load_policy: 3
     			}
-                
+
     		});
     	}
 
     	function sendPlayerStateChange(playerState) {
-            let timerTaskId;
+            var timerTaskId;
             clearTimeout(timerTaskId);
 
             switch (playerState) {
@@ -81,8 +84,8 @@
 
                 case YT.PlayerState.PLAYING:
                     sendStateChange(PLAYING);
-                    timerTaskId = setInterval( () => YouTubePlayerBridge.sendVideoCurrentTime( player.getCurrentTime() ), 100 );
-                    sendVideoData(player.getVideoData());                
+                    timerTaskId = setInterval( function(){YouTubePlayerBridge.sendVideoCurrentTime( player.getCurrentTime() )}, 100 );
+                    sendVideoData(player.getVideoData());
                     return;
 
                 case YT.PlayerState.PAUSED:
@@ -99,12 +102,12 @@
             }
 
             function sendVideoData(videoData) {
-                const { video_id, title } = videoData;
-                const videoDuration = player.getDuration();
+                <!--const { video_id, title } = videoData;-->
+                <!--const videoDuration = player.getDuration();-->
 
-                YouTubePlayerBridge.sendVideoId(video_id)
-                YouTubePlayerBridge.sendVideoTitle(title);
-                YouTubePlayerBridge.sendVideoDuration(videoDuration);
+                YouTubePlayerBridge.sendVideoId(videoData.video_id)
+                YouTubePlayerBridge.sendVideoTitle(videoData.title);
+                YouTubePlayerBridge.sendVideoDuration(player.getDuration());
             }
 
             function sendStateChange(newState) {
@@ -120,7 +123,7 @@
 
         // JAVA to WEB functions
 
-        function seekTo(startSeconds) {        	
+        function seekTo(startSeconds) {
         	player.seekTo(startSeconds, true);
         }
 

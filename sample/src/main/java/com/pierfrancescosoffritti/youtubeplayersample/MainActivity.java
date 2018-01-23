@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
         fullScreenManager = new FullScreenManager(this);
 
+        final boolean[] reloaded = {false};
         youTubePlayerView = findViewById(R.id.youtube_player_view);
         youTubePlayerView.initialize(new YouTubePlayerInitListener() {
             @Override
@@ -36,9 +37,8 @@ public class MainActivity extends AppCompatActivity {
                 initializedYouTubePlayer.addListener(new AbstractYouTubePlayerListener() {
                     @Override
                     public void onReady() {
-                        initializedYouTubePlayer.loadVideo("6JYIGclVQdw", 0);
+                        initializedYouTubePlayer.cueVideo("6JYIGclVQdw", 0);
                     }
-
                 });
             }
         }, true);

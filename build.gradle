@@ -11,6 +11,12 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
+buildscript {
+    dependencies {
+        // Add this line
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1"
+    }
+}
 
 allprojects {
     repositories {
